@@ -4,7 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import type { Lugar, OrigenVisita } from '../../src/tipos';
-import { listarLugares } from '../../src/servicios/lugaresAdaptador';
+import { listarLugares } from '../../src/servicios/lugares';
 import { ingresarDemoSiHaceFalta } from '../../src/servicios/sesionDemo';
 import { descargarRecorrido, sincronizar } from '../../src/servicios/visitas';
 import { listarLocales, type VisitaLocal } from '../../src/servicios/visitasLocal';

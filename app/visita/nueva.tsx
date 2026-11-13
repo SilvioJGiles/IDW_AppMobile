@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import type { Lugar, OrigenVisita } from '../../src/tipos';
 import { ErrorRed } from '../../src/servicios/cliente';
-import { listarLugares, obtenerLugar } from '../../src/servicios/lugaresAdaptador';
+import { listarLugares, obtenerLugar } from '../../src/servicios/lugares';
 import { obtenerPosicion } from '../../src/servicios/ubicacion';
 import { ErrorValidacion, LARGO_MAXIMO_NOTA, registrarVisita } from '../../src/servicios/visitas';
 import { lugarMasCercano } from '../../src/utils/distancia';

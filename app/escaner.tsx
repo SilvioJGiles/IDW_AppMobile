@@ -4,7 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ErrorRed } from '../src/servicios/cliente';
-import { obtenerLugar } from '../src/servicios/lugaresAdaptador';
+import { obtenerLugar } from '../src/servicios/lugares';
 import { leerCodigoQr } from '../src/utils/qr';
 
 type Estado = 'escaneando' | 'verificando' | 'error';
