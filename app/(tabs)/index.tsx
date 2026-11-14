@@ -4,6 +4,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { Magnetometer } from 'expo-sensors';
 import { obtenerPosicion, calcularDistanciaKm } from '../../src/servicios/ubicacion';
 import { listarLugares } from '../../src/servicios/lugares';
+import { ErrorRed } from '../../src/servicios/cliente';
 import type { Coordenadas } from '../../src/tipos';
 
 const CATEGORIAS = [
@@ -29,9 +30,15 @@ export default function PantallaMapa() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('todos');
   const [cargando, setCargando] = useState(true);
   const [anguloBrujula, setAnguloBrujula] = useState(0);
+  // Req. 3: el error tiene que verse en pantalla, no solo en la consola
+  const [error, setError] = useState<string | null>(null);
+  // Cambiar este número vuelve a correr el efecto: así funciona "Reintentar"
+  const [intento, setIntento] = useState(0);
 
   useEffect(() => {
     async function prepararMapa() {
+      setCargando(true);
+      setError(null);
       try {
         const gps = await obtenerPosicion();
         let posActual = null;
@@ -59,7 +66,13 @@ export default function PantallaMapa() {
         lugaresArmados.sort((a, b) => a.distancia - b.distancia);
         setListaLugares(lugaresArmados);
       } catch (error) {
-        console.error("Error al conectar con el servidor:", error);
+        // warn y no error: en desarrollo, console.error tapa la pantalla con el LogBox rojo
+        console.warn("Error al conectar con el servidor:", error);
+        setError(
+          error instanceof ErrorRed
+            ? 'No pudimos conectarnos al servidor. Revisá tu conexión e intentá de nuevo.'
+            : 'No pudimos cargar los lugares. Intentá de nuevo en un rato.',
+        );
       } finally {
         setCargando(false);
       }
@@ -77,7 +90,7 @@ export default function PantallaMapa() {
     return () => {
       suscripcion.remove();
     };
-  }, []);
+  }, [intento]);
 
   const abrirComoLlegar = (lat: number, lon: number, nombre: string) => {
     const url = Platform.select({
@@ -97,6 +110,18 @@ export default function PantallaMapa() {
       <View style={styles.pantallaCarga}>
         <ActivityIndicator size="large" color="#007AFF" />
         <Text style={styles.textoAviso}>Conectando al servidor de la facultad...</Text>
+      </View>
+    );
+  }
+
+  // Sin lugares y con error: no hay nada que mostrar en el mapa
+  if (error && listaLugares.length === 0) {
+    return (
+      <View style={styles.pantallaCarga}>
+        <Text style={styles.textoError}>{error}</Text>
+        <TouchableOpacity style={styles.botonReintentar} onPress={() => setIntento((n) => n + 1)}>
+          <Text style={styles.textoBotonRuta}>Reintentar</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -152,6 +177,13 @@ export default function PantallaMapa() {
         ))}
       </MapView>
 
+      {/* Estado vacío: la API respondió pero no hay lugares (o ninguno de esta categoría) */}
+      {lugaresFiltrados.length === 0 && (
+        <View style={styles.cajaVacia}>
+          <Text style={styles.textoAviso}>No hay lugares para mostrar en esta categoría.</Text>
+        </View>
+      )}
+
       {/* Tarjetas inferiores con indicador de brújula */}
       {lugaresFiltrados.length > 0 && (
         <View style={styles.cajaCercaTuyo}>
@@ -194,7 +226,19 @@ const styles = StyleSheet.create({
   contenedor: { flex: 1 },
   mapaFondo: { flex: 1 },
   pantallaCarga: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  textoAviso: { marginTop: 10, fontSize: 16 },
+  textoAviso: { marginTop: 10, fontSize: 16, textAlign: 'center' },
+  textoError: { fontSize: 16, textAlign: 'center', marginHorizontal: 24, marginBottom: 16, color: '#B00020' },
+  botonReintentar: { backgroundColor: '#007AFF', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10 },
+  cajaVacia: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: 'white',
+    elevation: 3,
+  },
   
   contenedorFiltros: {
     position: 'absolute',

@@ -4,6 +4,19 @@ import { obtenerSesion, type Sesion } from './sesion';
 
 const CLAVE_BIOMETRIA = 'mc_biometria_activa';
 
+// Vive en memoria: dura mientras la app esté abierta y se reinicia al cerrarla.
+// Está acá (y no en la pantalla de perfil) para que tanto la huella como el
+// ingreso con contraseña puedan marcar la sesión como desbloqueada.
+let desbloqueadoEnEstaApertura = false;
+
+export function estaDesbloqueado(): boolean {
+  return desbloqueadoEnEstaApertura;
+}
+
+export function marcarDesbloqueado(valor = true): void {
+  desbloqueadoEnEstaApertura = valor;
+}
+
 export async function biometriaDisponible(): Promise<boolean> {
   const nivel = await LocalAuthentication.getEnrolledLevelAsync();
   return nivel !== LocalAuthentication.SecurityLevel.NONE;
