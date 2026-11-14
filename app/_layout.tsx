@@ -2,6 +2,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { AvisoSinConexion } from '../components/AvisoSinConexion';
 import { useSincronizarAlVolverRed } from '../src/hooks/useSincronizarAlVolverRed';
 
 import { clienteConsultas, conectarEventosDelTelefono } from '../src/consultas/cliente';
@@ -24,6 +25,9 @@ export default function RootLayout() {
         <Stack.Screen name="escaner" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="visita/nueva" options={{ title: 'Registrar visita' }} />
       </Stack>
+
+      {/* Después del Stack: así se dibuja encima de cualquier pantalla */}
+      <AvisoSinConexion />
 
       <StatusBar style="dark" />
     </QueryClientProvider>
