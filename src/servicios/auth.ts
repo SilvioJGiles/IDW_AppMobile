@@ -5,9 +5,8 @@ import { obtenerSesion, type Sesion } from './sesion';
 const CLAVE_BIOMETRIA = 'mc_biometria_activa';
 
 export async function biometriaDisponible(): Promise<boolean> {
-  const hayHardware = await LocalAuthentication.hasHardwareAsync();
-  const registrada = await LocalAuthentication.isEnrolledAsync();
-  return hayHardware && registrada;
+  const nivel = await LocalAuthentication.getEnrolledLevelAsync();
+  return nivel !== LocalAuthentication.SecurityLevel.NONE;
 }
 
 export async function biometriaActivada(): Promise<boolean> {

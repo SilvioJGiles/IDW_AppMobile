@@ -46,8 +46,9 @@ export function ReproductorAudio({
     setDescargando(true);
     try {
       setUri(await descargarAudio(lugarId, audioguia.url));
-    } catch {
-      setError('No se pudo descargar. Revisá tu conexión e intentá de nuevo.');
+    } catch (e) {
+      console.warn('[audio] falló la descarga:', e, 'url:', audioguia.url);
+      setError(`No se pudo descargar: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setDescargando(false);
     }
