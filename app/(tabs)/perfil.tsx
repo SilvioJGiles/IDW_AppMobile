@@ -10,22 +10,21 @@ import {
   biometriaActivada,
   biometriaDisponible,
   desactivarBiometria,
+  estaDesbloqueado,
   ingresarConBiometria,
+  marcarDesbloqueado,
 } from '../../src/servicios/auth';
 import { listarFavoritos } from '../../src/servicios/favoritos';
 import { obtenerLugar } from '../../src/servicios/lugares';
 import { cerrarSesion, obtenerSesion, type Sesion } from '../../src/servicios/sesion'; import type { Lugar } from '../../src/tipos';
 import { ingresarDemoSiHaceFalta } from '../../src/servicios/sesionDemo';
 
-// Se recuerda mientras la app siga abierta: la huella se pide una vez por apertura.
-let desbloqueadoEnEstaApertura = false;
-
 export default function PerfilScreen() {
   const [sesion, setSesion] = useState<Sesion | null>(null);
   const [bioActiva, setBioActiva] = useState(false);
   const [bioDisponible, setBioDisponible] = useState(false);
   const [favoritos, setFavoritos] = useState<Lugar[]>([]);
-  const [desbloqueado, setDesbloqueado] = useState(desbloqueadoEnEstaApertura);
+  const [desbloqueado, setDesbloqueado] = useState(estaDesbloqueado());
 
   const cargar = useCallback(async () => {
     const [s, activa, disponible, ids] = await Promise.all([
@@ -35,6 +34,7 @@ export default function PerfilScreen() {
       listarFavoritos(),
     ]);
     setSesion(s);
+    setDesbloqueado(estaDesbloqueado()); // por si volvió de ingresar con contraseña
     setBioActiva(activa);
     setBioDisponible(disponible);
 
@@ -55,7 +55,7 @@ export default function PerfilScreen() {
   async function entrarConHuella() {
     const ses = await ingresarConBiometria();
     if (ses) {
-      desbloqueadoEnEstaApertura = true;
+      marcarDesbloqueado();
       setDesbloqueado(true);
     } else {
       Alert.alert('No se pudo verificar', 'Probá de nuevo o iniciá sesión con tu contraseña.');
@@ -76,7 +76,7 @@ export default function PerfilScreen() {
   async function salir() {
     await cerrarSesion();
     await desactivarBiometria();
-    desbloqueadoEnEstaApertura = false;
+    marcarDesbloqueado(false);
     setDesbloqueado(false);
     await cargar();
   }
@@ -89,6 +89,10 @@ export default function PerfilScreen() {
         <Text style={estilos.texto}>Usá tu huella o rostro para entrar a tu cuenta.</Text>
         <Pressable onPress={entrarConHuella} style={estilos.botonPrincipal} accessibilityRole="button">
           <Text style={estilos.botonPrincipalTexto}>Ingresar con huella o rostro</Text>
+        </Pressable>
+        {/* Alternativa (req. 2): si la huella falla o el sensor dejó de estar disponible */}
+        <Pressable onPress={() => router.push('/login')} style={estilos.botonSecundario} accessibilityRole="button">
+          <Text style={estilos.botonSecundarioTexto}>Usar mi contraseña</Text>
         </Pressable>
       </View>
     );
@@ -146,7 +150,7 @@ export default function PerfilScreen() {
             No hay una sesión iniciada. El catálogo y los favoritos funcionan igual; el inicio de sesión es para
             sincronizar tu recorrido.
           </Text>
-          <Pressable onPress={() => router.push('./login')} style={estilos.botonPrincipal} accessibilityRole="button">
+          <Pressable onPress={() => router.push('/login')} style={estilos.botonPrincipal} accessibilityRole="button">
             <Text style={estilos.botonPrincipalTexto}>Iniciar sesión</Text>
           </Pressable>
         </>

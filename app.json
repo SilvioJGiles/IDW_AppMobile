@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mi_guia_turistica",
+    "name": "Mi Ciudad",
     "slug": "mi_guia_turistica",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,12 +17,22 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "ar.edu.uner.miciudadcolon",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -53,11 +63,38 @@
       ],
       "expo-sqlite",
       "expo-secure-store",
-      ["expo-audio", { "enableBackgroundPlayback": true }],
-      "expo-asset"
+      "expo-notifications",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Mi Ciudad usa tu rostro para volver a ingresar a tu cuenta."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
+      ],
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4e6beb4f-f578-40ea-9489-b7d1dce302f1"
+      }
+    },
+    "owner": "silvio.giles.edu"
   }
 }

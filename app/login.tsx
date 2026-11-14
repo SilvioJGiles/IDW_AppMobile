@@ -1,9 +1,10 @@
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Colores } from '../constants/colores';
 import { ErrorApi, ErrorRed, pedir } from '../src/servicios/cliente';
+import { marcarDesbloqueado } from '../src/servicios/auth';
 import { guardarSesion } from '../src/servicios/sesion';
 import { sincronizar } from '../src/servicios/visitas';
 
@@ -32,6 +33,7 @@ export default function LoginScreen() {
       });
       if (!r?.token) throw new ErrorApi('ERROR_INTERNO', 'La API no devolvió la sesión.', 500);
       await guardarSesion(r.token, r.usuario.id);
+      marcarDesbloqueado(); // la contraseña vale como desbloqueo: no se vuelve a pedir la huella
       void sincronizar().catch(() => undefined); // sube las visitas que habían quedado pendientes
       router.replace('/(tabs)/perfil');
     } catch (e) {
@@ -72,6 +74,10 @@ export default function LoginScreen() {
       <Pressable onPress={ingresar} disabled={cargando} style={estilos.boton} accessibilityRole="button">
         {cargando ? <ActivityIndicator color={Colores.primarioTexto} /> : <Text style={estilos.botonTexto}>Ingresar</Text>}
       </Pressable>
+
+      <Link href="/registro" replace style={estilos.enlace}>
+        ¿No tenés cuenta? Registrate
+      </Link>
     </View>
   );
 }
@@ -98,4 +104,5 @@ const estilos = StyleSheet.create({
     backgroundColor: Colores.primario,
   },
   botonTexto: { fontSize: 18, fontWeight: '700', color: Colores.primarioTexto },
+  enlace: { fontSize: 17, color: Colores.primario, textAlign: 'center', paddingVertical: 12 },
 });
