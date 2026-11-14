@@ -27,6 +27,9 @@ import {
   textoDia,
   textoEstado,
 } from "../../src/utils/horarios";
+import { BotonFavorito } from "../../components/BotonFavorito";
+import { ReproductorAudio } from "../../components/ReproductorAudio";
+
 
 // Detalle de un lugar: fotos, estado, descripción, datos, horarios de la semana
 // y accesos a la audioguía y a registrar la visita.
@@ -110,7 +113,10 @@ export default function DetalleLugarScreen() {
             </View>
           )}
 
-          <Text style={styles.titulo}>{lugar.nombre}</Text>
+          <View style={styles.fila}>
+            <Text style={[styles.titulo, { flex: 1 }]}>{lugar.nombre}</Text>
+            <BotonFavorito lugarId={lugar.id} />
+          </View>
 
           {lugar.horarios.length > 0 && (
             <Text style={[styles.estado, { color: abierto ? Colores.abierto : Colores.cerrado }]}>
@@ -124,19 +130,7 @@ export default function DetalleLugarScreen() {
         {/* Acciones principales */}
         <View style={styles.bloque}>
           {lugar.audioguia && (
-            <Pressable
-              onPress={() =>
-                Alert.alert("Audioguía", "La reproducción de audioguías se suma en la próxima etapa.")
-              }
-              style={styles.botonPrincipal}
-              accessibilityRole="button"
-              accessibilityLabel={`Escuchar audioguía, ${formatearDuracion(lugar.audioguia.duracionSegundos)} minutos`}
-            >
-              <Ionicons name="headset-outline" size={24} color={Colores.primarioTexto} />
-              <Text style={styles.botonPrincipalTexto}>
-                Escuchar audioguía {formatearDuracion(lugar.audioguia.duracionSegundos)}
-              </Text>
-            </Pressable>
+            <ReproductorAudio lugarId={lugar.id} nombre={lugar.nombre} audioguia={lugar.audioguia} />
           )}
 
           <Pressable
