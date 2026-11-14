@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "mi_guia_turistica",
+    "name": "Mi Ciudad",
     "slug": "mi_guia_turistica",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,6 +17,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "ar.edu.uner.miciudadcolon",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -52,7 +53,14 @@
         }
       ],
       "expo-sqlite",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Mi Ciudad usa tu rostro para volver a ingresar a tu cuenta."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

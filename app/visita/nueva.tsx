@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import type { Lugar, OrigenVisita } from '../../src/tipos';
 import { ErrorRed } from '../../src/servicios/cliente';
+import { avisarVisitaRegistrada } from '../../src/servicios/notificaciones';
 import { listarLugares, obtenerLugar } from '../../src/servicios/lugares';
 import { obtenerPosicion } from '../../src/servicios/ubicacion';
 import { ErrorValidacion, LARGO_MAXIMO_NOTA, registrarVisita } from '../../src/servicios/visitas';
@@ -109,6 +110,8 @@ export default function NuevaVisita() {
     try {
       await registrarVisita({ lugarId: lugar.id, origen, fotoTemporal: foto, nota });
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      // Notificación local: no se espera (el permiso puede tardar) y nunca rompe el guardado.
+      void avisarVisitaRegistrada(lugar.nombre);
       router.replace('/(tabs)/recorrido');
     } catch (e) {
       setError(e instanceof ErrorValidacion ? e.message : 'No pudimos guardar la visita. Probá de nuevo.');
