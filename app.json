@@ -60,7 +60,9 @@
         {
           "faceIDPermission": "Mi Ciudad usa tu rostro para volver a ingresar a tu cuenta."
         }
-      ]
+      ],
+      ["expo-audio", { "enableBackgroundPlayback": true }],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
