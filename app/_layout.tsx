@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { AvisoSinConexion } from '../components/AvisoSinConexion';
 import { Bienvenida } from '../components/Bienvenida';
+import { useRecuperarVisita } from '../src/hooks/useRecuperarVisita';
 import { useSincronizarAlVolverRed } from '../src/hooks/useSincronizarAlVolverRed';
 
 import { clienteConsultas, conectarEventosDelTelefono } from '../src/consultas/cliente';
@@ -21,6 +22,7 @@ export default function RootLayout() {
   // TanStack Query: refrescar al volver a la app y pausar sin señal
   useEffect(() => conectarEventosDelTelefono(), []);
   useSincronizarAlVolverRed();
+  useRecuperarVisita(); // por si Android cerró la app mientras se sacaba una foto
   const [mostrarBienvenida, setMostrarBienvenida] = useState(true);
 
   return (

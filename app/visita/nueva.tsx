@@ -17,7 +17,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { CamaraFoto } from '../../components/CamaraFoto';
 import type { Lugar, OrigenVisita } from '../../src/tipos';
+import { borrarBorrador, guardarBorrador, leerBorrador } from '../../src/servicios/borradorVisita';
 import { ErrorRed } from '../../src/servicios/cliente';
 import { avisarVisitaRegistrada } from '../../src/servicios/notificaciones';
 import { listarLugares, obtenerLugar } from '../../src/servicios/lugares';
@@ -37,12 +39,14 @@ const RADIO_PROXIMIDAD_M = 150;
 type Estado = 'cargando' | 'eligiendo' | 'editando' | 'guardando' | 'error';
 
 export default function NuevaVisita() {
-  const params = useLocalSearchParams<{ lugarId?: string; origen?: OrigenVisita }>();
+  // recuperar = '1': la app se reinició mientras la cámara estaba abierta (ver useRecuperarVisita)
+  const params = useLocalSearchParams<{ lugarId?: string; origen?: OrigenVisita; recuperar?: string }>();
   const [estado, setEstado] = useState<Estado>(params.lugarId ? 'cargando' : 'eligiendo');
   const [lugar, setLugar] = useState<Lugar | null>(null);
   const [origen, setOrigen] = useState<OrigenVisita>(params.origen ?? 'manual');
   const [foto, setFoto] = useState<string | null>(null);
   const [nota, setNota] = useState('');
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Si llegó con un lugar (QR o botón "Registrar visita" del detalle), se carga.
@@ -70,6 +74,25 @@ export default function NuevaVisita() {
     };
   }, [params.lugarId]);
 
+  // Volvimos después de que Android cerró la app con la cámara abierta:
+  // recuperamos la nota del borrador y la foto que quedó pendiente.
+  useEffect(() => {
+    if (params.recuperar !== '1') return;
+    void (async () => {
+      const borrador = await leerBorrador();
+      if (borrador) {
+        setNota(borrador.nota);
+        setOrigen(borrador.origen);
+      }
+      const pendiente = await ImagePicker.getPendingResultAsync().catch(() => null);
+      // getPendingResultAsync puede devolver un error ("code") o un resultado cancelado
+      if (pendiente && !('code' in pendiente) && !pendiente.canceled && pendiente.assets.length > 0) {
+        setFoto(pendiente.assets[0].uri);
+      }
+      await borrarBorrador();
+    })();
+  }, [params.recuperar]);
+
   const elegir = useCallback((l: Lugar, o: OrigenVisita) => {
     setLugar(l);
     setOrigen(o);
@@ -83,24 +106,29 @@ export default function NuevaVisita() {
       { text: 'Abrir ajustes', onPress: () => Linking.openSettings() },
     ]);
 
-  const sacarFoto = async () => {
-    const permiso = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permiso.granted) return avisarPermiso('la cámara');
-    try {
-      const r = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.6 });
-      if (!r.canceled) setFoto(r.assets[0].uri);
-    } catch {
-      setError('No pudimos abrir la cámara.');
-    }
-  };
-
+  /**
+   * Abre la galería del teléfono. Antes guarda un borrador, porque mientras la galería
+   * (otra app) está abierta, Android puede cerrar la nuestra (ver servicios/borradorVisita.ts).
+   */
   const elegirDeGaleria = async () => {
+    if (lugar) await guardarBorrador({ lugarId: lugar.id, origen, nota }).catch(() => undefined);
     try {
       const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.6 });
       if (!r.canceled) setFoto(r.assets[0].uri);
     } catch {
       setError('No pudimos abrir la galería.');
+    } finally {
+      // Si llegamos acá, la app NO se reinició: el borrador ya no hace falta
+      await borrarBorrador();
     }
+  };
+
+  // La foto se saca con la cámara DENTRO de la app (components/CamaraFoto.tsx):
+  // no salimos a la app de Cámara de Android, así que Android no cierra la nuestra.
+  const sacarFoto = async () => {
+    const permiso = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permiso.granted) return avisarPermiso('la cámara');
+    setCamaraAbierta(true);
   };
 
   const guardar = async () => {
@@ -183,6 +211,15 @@ export default function NuevaVisita() {
         />
         <Boton texto="Cancelar" secundario onPress={() => router.back()} deshabilitado={guardando} />
       </ScrollView>
+
+      <CamaraFoto
+        visible={camaraAbierta}
+        alElegir={(uri) => {
+          setFoto(uri);
+          setCamaraAbierta(false);
+        }}
+        alCancelar={() => setCamaraAbierta(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
